@@ -1,11 +1,10 @@
-############################################################
-# Repartition of Immune Cells - Seurat
-############################################################
+# Repartition of Immune Cells — Seurat
 
-# ===============================
-# 1. Libraries
-# ===============================
+Single-cell RNA-seq analysis of immune cell subsets with Seurat: normalization, clustering, UMAP visualization, and comparison of cell type proportions across conditions and patients.
 
+## 1. Libraries
+
+```r
 library(Seurat)
 library(patchwork)
 library(dplyr)
@@ -13,28 +12,28 @@ library(tidyverse)
 library(ggplot2)
 library(ggpubr)
 library(here)
+```
 
-# ===============================
-# 2. Data import
-# ===============================
+## 2. Data import
 
+```r
 data <- readRDS(
   here("data/raw/atlas_for_deconv_CD10neg_annot_figs2.rds")
 )
+```
 
-# ===============================
-# 3. Subset immune cells
-# ===============================
+## 3. Subset immune cells
 
+```r
 data_immuno <- subset(
   data,
   subset = annot_atlas_low == "Immune"
 )
+```
 
-# ===============================
-# 4. Normalization & feature selection
-# ===============================
+## 4. Normalization & feature selection
 
+```r
 data_immuno <- NormalizeData(
   data_immuno,
   normalization.method = "LogNormalize",
@@ -50,13 +49,12 @@ data_immuno <- FindVariableFeatures(
 all.genes <- rownames(data_immuno)
 top20 <- head(VariableFeatures(data_immuno), 20)
 
-VariableFeaturePlot(data_immuno) +
-  LabelPoints(points = top20, repel = TRUE)
+VariableFeaturePlot(data_immuno) + LabelPoints(points = top20, repel = TRUE)
+```
 
-# ===============================
-# 5. Scaling, PCA, clustering
-# ===============================
+## 5. Scaling, PCA, clustering
 
+```r
 data_immuno <- ScaleData(data_immuno, features = all.genes)
 
 data_immuno <- RunPCA(data_immuno, features = VariableFeatures(data_immuno))
@@ -69,20 +67,20 @@ data_immuno <- RunUMAP(
   dims = 1:20,
   n.neighbors = 30
 )
+```
 
-# ===============================
-# 6. UMAP visualisation
-# ===============================
+## 6. UMAP visualisation
 
+```r
 DimPlot(data_immuno, reduction = "umap", label = TRUE)
 DimPlot(data_immuno, group.by = "DiseaseID.x")
 DimPlot(data_immuno, group.by = "annot_atlas", label = TRUE)
 DimPlot(data_immuno, group.by = "patientID", label = TRUE)
+```
 
-# ===============================
-# 7. Cell proportion per condition
-# ===============================
+## 7. Cell proportion per condition
 
+```r
 meta_condition <- data_immuno@meta.data %>%
   select(DiseaseID.x, annot_atlas)
 
@@ -109,11 +107,11 @@ ggplot(
     fill = "Condition"
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
-# ===============================
-# 8. Cell proportion per patient
-# ===============================
+## 8. Cell proportion per patient
 
+```r
 meta_patient <- data_immuno@meta.data %>%
   select(patientID, annot_atlas)
 
@@ -140,3 +138,4 @@ ggplot(
     fill = "Patient"
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
